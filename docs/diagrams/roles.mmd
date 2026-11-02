@@ -1,0 +1,16 @@
+flowchart LR
+    G(["Guest"]) --> U1["Browse branches & menus"]
+    G --> U2["Register → becomes Customer"]
+    CU(["Customer"]) --> U3["Book a table"]
+    CU --> U4["Order food on a booking"]
+    CU --> U5["Track order status / cancel booking"]
+    WA(["Waiter (cashier)"]) --> U6["Take order at table<br/>(walk-in or booking)"]
+    WA --> U7["Deliver ready food"]
+    CH(["Chef"]) --> U8["Kitchen queue: start / mark done"]
+    CH --> U9["Remove dishes from branch menu"]
+    BM(["Branch manager"]) --> U10["Branch orders, bookings,<br/>staff & salaries, sales"]
+    BM --> U11["Add / edit menu items"]
+    HQ(["HQ manager"]) --> U12["All branches: revenue,<br/>orders, staff & salaries"]
+    AD(["Admin"]) --> U13["Create users of any role,<br/>change role/branch, disable, delete"]
+    AD --> U14["Add branches"]
+    AD --> U12

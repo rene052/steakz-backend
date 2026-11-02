@@ -1,0 +1,9 @@
+stateDiagram-v2
+    [*] --> PENDING: customer or waiter places order
+    PENDING --> PREPARING: chef starts cooking (optional)
+    PENDING --> DONE: chef marks done
+    PREPARING --> DONE: chef marks done
+    DONE --> DELIVERED: waiter serves the table
+    PENDING --> CANCELLED: customer cancels the booking
+    DELIVERED --> [*]
+    CANCELLED --> [*]

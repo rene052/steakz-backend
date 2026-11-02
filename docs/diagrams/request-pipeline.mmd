@@ -1,0 +1,13 @@
+flowchart TD
+    A["HTTP request<br/>Authorization: Bearer JWT"] --> B{"verifyToken<br/>valid JWT?<br/>user exists & active?"}
+    B -- no token / invalid / deleted --> E401["401 Unauthorized"]
+    B -- account disabled --> E403a["403 Forbidden"]
+    B -- yes --> C{"requireRole([...])<br/>role allowed?"}
+    C -- no --> E403b["403 Forbidden"]
+    C -- yes --> D{"requireBranch<br/>staff with a branch?"}
+    D -- no --> E403c["403 Forbidden"]
+    D -- yes --> F["Route handler<br/>validate body (zod) → 400"]
+    F --> G["Prisma query<br/>where: { branchId: req.branchId }"]
+    G --> H{"record belongs<br/>to this branch?"}
+    H -- no --> E403d["403 Forbidden"]
+    H -- yes --> OK["200 / 201 JSON"]

@@ -1,0 +1,16 @@
+flowchart LR
+    subgraph Client["Browser — React + Vite (Vercel)"]
+        P["Public pages<br/>branches, menus"]
+        D["Role dashboards<br/>Customer · Waiter · Chef<br/>Branch Mgr · HQ · Admin"]
+    end
+    subgraph API["Express API — Node.js + TypeScript (Render)"]
+        R["Routes<br/>/api/auth · /api/public · /api/menu<br/>/api/customer · /api/cashier · /api/chef<br/>/api/branch-manager · /api/hq · /api/admin"]
+        M["Middleware<br/>verifyToken → requireRole → requireBranch"]
+        V["Validation (zod)<br/>+ business rules"]
+        O["Prisma ORM"]
+    end
+    DB[("PostgreSQL<br/>7 tables")]
+    PM["Postman collection<br/>(API testing)"]
+    Client -- "HTTPS · JSON · Bearer JWT" --> M
+    PM -- "HTTPS · JSON · Bearer JWT" --> M
+    M --> R --> V --> O --> DB

@@ -1,0 +1,150 @@
+// Steakz Restaurant Portal — Prisma schema
+// 7 entities: Branch, User, MenuItem, Table, Booking, Order, OrderItem
+
+generator client {
+  provider   = "prisma-client-js"
+  // Rust-free Prisma Client: queries run through the `pg` driver adapter (see src/lib/prisma.ts)
+  engineType = "client"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  CUSTOMER
+  CASHIER
+  CHEF
+  BRANCH_MANAGER
+  HQ_MANAGER
+  ADMIN
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  COMPLETED
+  CANCELLED
+}
+
+enum OrderStatus {
+  PENDING // submitted, waiting in the kitchen queue
+  PREPARING // chef has started cooking
+  DONE // ready for pickup by the cashier
+  DELIVERED // served at the table
+  CANCELLED
+}
+
+model Branch {
+  id        Int      @id @default(autoincrement())
+  name      String   @unique
+  address   String
+  phone     String?
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  users     User[]
+  menuItems MenuItem[]
+  tables    Table[]
+  orders    Order[]
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  name      String
+  email     String   @unique
+  password  String // bcrypt hash — never the plain-text password
+  role      Role     @default(CUSTOMER)
+  isActive  Boolean  @default(true)
+  branchId  Int? // null for CUSTOMER, HQ_MANAGER and ADMIN
+  salary    Float?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  branch   Branch?   @relation(fields: [branchId], references: [id], onDelete: SetNull)
+  bookings Booking[]
+  orders   Order[]
+
+  @@index([branchId])
+}
+
+model MenuItem {
+  id          Int      @id @default(autoincrement())
+  name        String
+  description String?
+  price       Float
+  category    String
+  isAvailable Boolean  @default(true)
+  branchId    Int
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  branch     Branch      @relation(fields: [branchId], references: [id], onDelete: Cascade)
+  orderItems OrderItem[]
+
+  @@index([branchId])
+}
+
+model Table {
+  id          Int     @id @default(autoincrement())
+  tableNumber Int
+  capacity    Int
+  isAvailable Boolean @default(true)
+  branchId    Int
+
+  branch   Branch    @relation(fields: [branchId], references: [id], onDelete: Cascade)
+  bookings Booking[]
+  orders   Order[]
+
+  @@unique([tableNumber, branchId])
+}
+
+model Booking {
+  id         Int           @id @default(autoincrement())
+  customerId Int
+  tableId    Int
+  guestCount Int
+  date       DateTime // date AND time of the reservation
+  status     BookingStatus @default(PENDING)
+  createdAt  DateTime      @default(now())
+  updatedAt  DateTime      @updatedAt
+
+  customer User    @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  table    Table   @relation(fields: [tableId], references: [id], onDelete: Cascade)
+  orders   Order[]
+
+  @@index([tableId, date])
+}
+
+model Order {
+  id         Int         @id @default(autoincrement())
+  customerId Int?
+  bookingId  Int?
+  branchId   Int
+  tableId    Int? // which table the cashier delivers to (walk-ins have no booking)
+  status     OrderStatus @default(PENDING)
+  total      Float
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+
+  customer User?       @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  booking  Booking?    @relation(fields: [bookingId], references: [id], onDelete: SetNull)
+  branch   Branch      @relation(fields: [branchId], references: [id], onDelete: Cascade)
+  table    Table?      @relation(fields: [tableId], references: [id], onDelete: SetNull)
+  items    OrderItem[]
+
+  @@index([branchId, status])
+}
+
+model OrderItem {
+  id         Int   @id @default(autoincrement())
+  orderId    Int
+  menuItemId Int
+  quantity   Int
+  unitPrice  Float // price at the moment of ordering
+
+  order    Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  menuItem MenuItem @relation(fields: [menuItemId], references: [id], onDelete: Restrict)
+}

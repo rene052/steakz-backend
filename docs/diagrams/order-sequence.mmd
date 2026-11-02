@@ -1,0 +1,25 @@
+sequenceDiagram
+    autonumber
+    actor C as Customer
+    actor W as Waiter (cashier)
+    participant API as Steakz API
+    actor K as Chef
+    participant DB as PostgreSQL
+    C->>API: POST /api/customer/bookings (table, date, guests)
+    API->>DB: check clash ±2h, create Booking (PENDING)
+    alt Customer orders from the website
+        C->>API: POST /api/customer/orders (bookingId, items)
+    else Waiter takes the order at the table
+        W->>API: POST /api/cashier/orders (tableId or bookingId, items)
+    end
+    API->>DB: price items on server, create Order (PENDING) + OrderItems
+    K->>API: GET /api/chef/orders (own branch queue)
+    K->>API: PATCH /api/chef/orders/:id/preparing
+    API->>DB: status = PREPARING
+    K->>API: PATCH /api/chef/orders/:id/done
+    API->>DB: status = DONE
+    W->>API: GET /api/cashier/orders?status=DONE
+    W->>API: PATCH /api/cashier/orders/:id/deliver
+    API->>DB: status = DELIVERED (counted as revenue)
+    C->>API: GET /api/customer/orders (sees "Served")
+    Note over C,W: Customer pays at the cashier on departure (serve then pay)
