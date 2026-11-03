@@ -2,6 +2,18 @@
 
 REST API for the Steakz Restaurant Portal: Express 5, TypeScript, Prisma, PostgreSQL, JWT and bcrypt.
 
+## Live deployment
+
+| What | Link |
+| --- | --- |
+| Website (frontend, Vercel) | https://steakz-frontend-omega.vercel.app |
+| API (backend, Render) | https://steakz-backend-hk3f.onrender.com |
+| Health check | https://steakz-backend-hk3f.onrender.com/api/health |
+| Backend repository | https://github.com/rene052/steakz-backend |
+| Frontend repository | https://github.com/rene052/steakz-frontend |
+
+The backend runs on Render's free plan and sleeps when unused: the first request after a while can take about 50 seconds.
+
 ## Setup
 
 ```bash
